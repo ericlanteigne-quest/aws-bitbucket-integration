@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Webhook endpoint for Bitbucket server
+Description: Webhook endpoint for repository events
 
 Resources:
   ApiRole:
@@ -23,7 +23,7 @@ Resources:
     Type: AWS::ApiGateway::RestApi
     Properties:
       Name: !Ref AWS::StackName
-      Description: Webhook endpoint for Bitbucket server
+      Description: Webhook endpoint for repository events
 
   MethodEventsPOST:
     Type: AWS::ApiGateway::Method
@@ -57,10 +57,10 @@ Resources:
             {
               "Entries": [
                 {
-                  "Source": "bitbucket-integration",
+                  "Source": "devops-integration",
                   "EventBusName": "default",
                   "Detail": "$input.json('$').replaceAll('\"','\\\"')",
-                  "DetailType": "$original.repository.name"
+                  "DetailType": "$original.resource.repository.name"
                 }
               ]
             }

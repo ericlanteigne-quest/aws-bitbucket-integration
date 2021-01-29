@@ -1,15 +1,15 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Bitbucket events delivered by webhook
+Description: Repository events delivered by webhook
 
 Parameters:
   webhookstackname:
     Description: Name of CloudFormation stack created by webhook.yaml
     Type: String
-    Default: bitbucket-integration
-  bitbucketserverurl:
+    Default: devops-integration
+  repositoryserverurl:
     Type: String
-    Description: URL of your Bitbucket Server e.g. http://server:port
-  bitbuckettoken:
+    Description: URL of your repository Server e.g. http://server:port
+  repositorytoken:
     Type: String
     Description: Personal token generated to access the repositories
     NoEcho: true
@@ -94,8 +94,8 @@ Resources:
             const { message, projectName, repoName, branch} = JSON.parse(event);
             return new Promise((resolve, reject) => {
               const request = https.get(
-                process.env.BITBUCKET_SERVER_URL + '/rest/api/latest/projects/' + projectName + '/repos/' + repoName + '/archive?at=refs/heads/' + branch + '&format=zip',
-                { headers: { Authorization: 'Bearer ' + process.env.BITBUCKET_TOKEN } },
+                process.env.REPOSITORY_SERVER_URL + '/rest/api/latest/projects/' + projectName + '/repos/' + repoName + '/archive?at=refs/heads/' + branch + '&format=zip',
+                { headers: { Authorization: 'Bearer ' + process.env.REPOSITORY_TOKEN } },
                 (response) => {
                 const params = {
                   Bucket: process.env.S3BUCKET,
@@ -115,8 +115,8 @@ Resources:
           };
       Environment:
         Variables:
-          BITBUCKET_SERVER_URL: !Ref bitbucketserverurl
-          BITBUCKET_TOKEN: !Ref bitbuckettoken
+          REPOSITORY_SERVER_URL: !Ref repositoryserverurl
+          REPOSITORY_TOKEN: !Ref repositorytoken
           S3BUCKET: !Ref S3BucketCodePipeline
 
   EventsInvokeDownloadPermission:
@@ -166,7 +166,7 @@ Resources:
         - ${webhookstackname}-CatchAll
         -
           webhookstackname: !Ref webhookstackname
-      Description: Bitbucket events
+      Description: REPOSITORY events
       RoleArn: !GetAtt EventBridgeRole.Arn
       EventPattern: 
         source: 
@@ -181,7 +181,7 @@ Resources:
               webhookstackname: !Ref webhookstackname
         - 
           Arn: !GetAtt Download.Arn
-          Id: bitbucket-integration-download
+          Id: devops-integration-download
           InputTransformer:
             InputPathsMap:
               author: $.detail.actor.name
